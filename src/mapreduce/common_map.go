@@ -64,8 +64,7 @@ func doMap(
 
 
 	//have a look about the parameters
- 	//fmt.Println("Map: job name = %s, input file = %s, map task id = %d, nReduce = %d\n",
-	// jobName, inFile, mapTaskNumber, nReduce)
+ 	fmt.Println("Some informations ->>>>> Map: job name = %s, input file = %s, map task id = %d, nReduce = %d\n", jobName, inFile, mapTaskNumber, nReduce)
 
 	bytes, err := ioutil.ReadFile(inFile)
  	if err != nil {
@@ -86,19 +85,40 @@ func doMap(
 		defer file_ptr.Close()
 		encoders[reduceTaskNumber] = json.NewEncoder(file_ptr);
 	}
+
 	for _, kv := range kvs {
 		key := kv.Key
-		HashedKey := ihash(key) % nReduce
+		HashedKey := int(ihash(key) % nReduce)
 		//filename := reduceName(jobName, mapTaskNumber, HashedKey)
 		//outputFile, _ := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
 		//enc := json.NewEncoder(outputFile)
 		err := encoders[HashedKey].Encode(&kv)
+		//err := enc.Encode(&kv)
+		//fmt.Println("writing ", key)
 		if err != nil {
 			fmt.Println(err)
 		}
+		//outputFile.Close()
 	}
 
+	// 这个版本会跑太久*** Test killed: ran too long (10m0s).
+/*
+	for _, kv := range kvs {
+		key := kv.Key
+		HashedKey := int(ihash(key) % nReduce)
+		filename := reduceName(jobName, mapTaskNumber, HashedKey)
+		outputFile, _ := os.OpenFile(filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
+		enc := json.NewEncoder(outputFile)
+		//err := encoders[HashedKey].Encode(&kv)
+		err := enc.Encode(&kv)
+		fmt.Println("writing ", key)
+		if err != nil {
+			fmt.Println(err)
+		}
+		outputFile.Close()
+	}
 
+*/
 	//outputFile, _ := os.OpenFile("output.txt", os.O_WRONLY|os.O_CREATE, 0666)
     //enc2 := json.NewEncoder(outputFile)
 	//var filename = reduceName(jobName, mapTaskNumber, nReduce)

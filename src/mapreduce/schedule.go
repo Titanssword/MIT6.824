@@ -32,5 +32,9 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 	//
 	// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
 	//
+
+	//存储ntask 的状态
+	nTaskStates := make([]int, ntasks)
+	fmt.Println("nTaskStates : ***** %v", nTaskStates)
 	fmt.Printf("Schedule: %v phase done\n", phase)
 }
