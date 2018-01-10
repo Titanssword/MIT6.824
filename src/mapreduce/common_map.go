@@ -64,7 +64,7 @@ func doMap(
 
 
 	//have a look about the parameters
- 	fmt.Println("Some informations ->>>>> Map: job name = %s, input file = %s, map task id = %d, nReduce = %d\n", jobName, inFile, mapTaskNumber, nReduce)
+ 	//fmt.Println("Some informations ->>>>> Map: job name = %s, input file = %s, map task id = %d, nReduce = %d\n", jobName, inFile, mapTaskNumber, nReduce)
 
 	bytes, err := ioutil.ReadFile(inFile)
  	if err != nil {
