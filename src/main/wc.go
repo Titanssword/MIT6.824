@@ -16,12 +16,15 @@ import (
 // and look only at the contents argument. The return value is a slice
 // of key/value pairs.
 //
+
+// the point of this function is the strings.FieldsFunc which can divides the
+// string into []string with resect to the unicode.IsLetter
 func mapF(filename string, contents string) []mapreduce.KeyValue {
 	words := strings.FieldsFunc(contents, func(r rune) bool {
 		return !unicode.IsLetter(r)
 	})
-
 	var kv []mapreduce.KeyValue
+	// one word is representing 1 time
 	for _, word := range words {
 		kv = append(kv, mapreduce.KeyValue{Key: word, Value: "1"})
 	}
@@ -33,6 +36,7 @@ func mapF(filename string, contents string) []mapreduce.KeyValue {
 // map tasks, with a list of all the values created for that key by
 // any map task.
 //
+// simply just count the values length
 func reduceF(key string, values []string) string {
 	return strconv.Itoa(len(values))
 }

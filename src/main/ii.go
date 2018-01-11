@@ -21,9 +21,12 @@ func mapF(document string, value string) (res []mapreduce.KeyValue) {
 	words := strings.FieldsFunc(value, func(r rune) bool {
 		return !unicode.IsLetter(r)
 	})
+	// use DocMaps structure to store the word, inFile information
 	// word, doc1,
 	DocMaps := make(map[string]string)
 	var kv []mapreduce.KeyValue
+	// get the word from the words list and meanwhile we can get rid of the repeat word
+	// for this structure repeat word is not the times, it has no other information.
 	for _, word := range words {
 		DocMaps[word] = document
 	}
@@ -44,7 +47,10 @@ func reduceF(key string, values []string) string {
 	// example doc1
 	//example2 doc2
 	nDoc := len(values)
+	// fisrt, sort, because the map is disordered
 	sort.Strings(values)
+	// and then put the []string into string
+	// be careful with the commas
 	resString := strconv.Itoa(nDoc) + " "
 	for _, v := range values {
 		resString = resString + v + ","

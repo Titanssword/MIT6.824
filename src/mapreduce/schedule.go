@@ -33,7 +33,7 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 	//
 	// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
 	//
-	var wait_group sync.WaitGroup
+
 	//存储ntask 的状态 0 fail, 1, process, 2 finished
 	/*
 	nTaskStates := make([]int, ntasks+1)
@@ -49,11 +49,11 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
   //
 	// }
 */
+	var wait_group sync.WaitGroup
+	// firstly, we have nTasks, and our job is dividing these tasks into the worker by the call function
 	for i:=0; i < ntasks; i++ {
 		wait_group.Add(1)
-
 		//struct of DoTaskArgs: the information of the job
-		//nTaskStates[i] = 1
 		var args DoTaskArgs
 		args.JobName = jobName
 		if phase == mapPhase {
@@ -62,34 +62,36 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 		args.Phase = phase
 		args.TaskNumber = i
 		args.NumOtherPhase = n_other
-		// the job is being scheduled
-		//
-		//if nTaskStates[i] !=2 {
-			reply := ShutdownReply{0}
-			//fmt.Println(i, nTaskStates[i])
-			go func ()  {
-				defer wait_group.Done()
-				for {
-					worker := <-registerChan
-					//func call(srv string, rpcname string,
-					//args interface{}, reply interface{})
-					if (call(worker, "Worker.DoTask", &args, &reply)){
-						go func(){registerChan <- worker} ()
-						break
-					}
-					/*
-					succeeded := call(worker, "Worker.DoTask", &args, &reply)
-					if !succeeded {
-						fmt.Println("RPC call ERROR *****************")
-					}
-					fmt.Println("finished TaskNumber->>>",args.TaskNumber)
-*/
+		reply := ShutdownReply{0}
+		// use go routines
+		go func ()  {
+			defer wait_group.Done()
+			// keep runing until success
+			for {
+				// all the worker is stored in the registerChan channel
+				worker := <-registerChan
+				//func call(srv string, rpcname string, args interface{}, reply interface{})
+				if (call(worker, "Worker.DoTask", &args, &reply)){
+					go func(){registerChan <- worker} ()
+					break
 				}
-
-			}()
-			//fmt.Println("reply: ", reply.Ntasks)
-	//	}
+				/*
+				// firstly i want to use this form, but it will go wrong when i want to add the
+				// else statement. i still don't know why
+				succeeded := call(worker, "Worker.DoTask", &args, &reply)
+				if !succeeded {
+					fmt.Println("RPC call ERROR *****************")
+				}
+				else {
+					fmt.Println("finished TaskNumber->>>",args.TaskNumber)
+				}
+				*/
+			}
+		}()
 	}
+	// the finish 
+	wait_group.Wait()
+	fmt.Printf("Schedule: %v phase done\n", phase)
 	// scheduling until all the job are alredy allocated
 	/*
 	i:=0
@@ -151,8 +153,8 @@ func schedule(jobName string, mapFiles []string, nReduce int, phase jobPhase, re
 	}
 	*/
 
-	wait_group.Wait()
 
-	fmt.Printf("Schedule: %v phase done\n", phase)
+
+
 
 }

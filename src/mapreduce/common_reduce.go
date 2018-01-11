@@ -53,9 +53,12 @@ func doReduce(
 	// }
 	// file.Close()
 	//
-	//使用map 存储key to key对应的多个值的数组
-	kvMap := make(map[string]([]string))
 
+	//使用map 存储key to key对应的多个值的数组
+	// because the value of the KeyValue is always 1, so the style of the kvMap
+	// is going to be like this: word: [1,1,1 ]; hello : [1,1,1,1];
+	kvMap := make(map[string]([]string))
+	// file all the intermediate files and transfer the json into kv structure
 	for mapNumber := 0; mapNumber < nMap; mapNumber++ {
 		filename := reduceName(jobName, mapNumber, reduceTaskNumber)
 		file, err := os.Open(filename)
@@ -63,7 +66,6 @@ func doReduce(
 			log.Fatal("err in open  file: %s", err)
 		}
 		defer file.Close()
-
 		decoder := json.NewDecoder(file)
 		for {
 	        var kv KeyValue
@@ -74,16 +76,17 @@ func doReduce(
 	  		}
 	        //map append 方法
 	        kvMap[kv.Key] = append(kvMap[kv.Key], kv.Value)
-
 	    }
 	}
-
+	// use keys to store all the word in the file, the length is how many words
 	keys := make([]string, 0, len(kvMap))
 	for k, _ := range kvMap {
 		keys = append(keys, k)
 	}
+	// just format, because the map structure is disordered
 	sort.Strings(keys)
-
+	// one reduce function generate one file which store the results of the reduceF
+	// It is going to be like this: word, 4, hello, 5
 	newFile , err2:= os.Create(mergeName(jobName, reduceTaskNumber))
 	if err2 != nil {
 		fmt.Println("reduce merge files: %s cant open ", mergeName(jobName, reduceTaskNumber))
@@ -95,5 +98,6 @@ func doReduce(
 		//fmt.Println("reduceF results is  %s")
 		//fmt.Println(reduceF(k,  kvMap[k]))
 	}
+	// finally don't forget the Close() if you open a file
 	defer newFile.Close()
 }
